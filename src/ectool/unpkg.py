@@ -3,14 +3,17 @@
 
 import os, struct, sys, json, shutil, logging, hashlib
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
-def binpkg_unpack(binpkg_path, outpath_dir) :
-    logging.info("binpkg " + binpkg_path)
-    logging.info("output " + outpath_dir)
-    with open(binpkg_path, "rb") as f :
-        fdata = f.read()
-    if not os.path.exists(outpath_dir) :
+def binpkg_unpack(path_or_data, outpath_dir=None, ram=False, debug=False) :
+    # logging.info("binpkg " + binpkg_path)
+    # logging.info("output " + outpath_dir)
+    if type(path_or_data) == "bytes" :
+        fdata = path_or_data
+    else:
+        with open(path_or_data, "rb") as f :
+            fdata = f.read()
+    if outpath_dir and not os.path.exists(outpath_dir) :
         os.makedirs(outpath_dir)
     
     jdata = {}
@@ -26,13 +29,16 @@ def binpkg_unpack(binpkg_path, outpath_dir) :
         name = name.rstrip(b'\0').decode('utf8')
         hash = hash.rstrip(b'\0').decode('utf8').lower()
         img_type = img_type.rstrip(b'\0').decode('utf8')
-        print(name, addr, flash_size, offset, img_size, hash, img_type)
+        if debug:
+            print(name, addr, flash_size, offset, img_size, hash, img_type)
         foffset += 364
-        with open(os.path.join(outpath_dir, name + ".bin"), "wb") as f :
-            tmpdata = fdata[foffset:foffset+img_size]
-            sha256 = hashlib.sha256(tmpdata)
-            f.write(tmpdata)
-            print(sha256.hexdigest(), hash, hash == sha256.hexdigest())
+        tmpdata = fdata[foffset:foffset+img_size]
+        sha256 = hashlib.sha256(tmpdata).hexdigest()
+        if debug:
+            print(sha256, hash, hash == sha256)
+        if outpath_dir :
+            with open(os.path.join(outpath_dir, name + ".bin"), "wb") as f :
+                f.write(tmpdata)
         foffset += img_size
         jdata[name] = {
             "addr" : addr,
@@ -42,9 +48,15 @@ def binpkg_unpack(binpkg_path, outpath_dir) :
             "hash" : hash,
             "image_type" : img_type
         }
-    with open(os.path.join(outpath_dir, "image_info.json"), "w") as f :
-        json.dump(jdata, f, indent=2)
+        if ram :
+            jdata[name]["data"] = tmpdata
+    if outpath_dir :
+        with open(os.path.join(outpath_dir, "image_info.json"), "w") as f :
+            json.dump(jdata, f, indent=2)
+    return jdata
 
 if __name__ == "__main__":
     if len(sys.argv) == 3 :
-        binpkg_unpack(sys.argv[1], sys.argv[2])
+        binpkg_unpack(sys.argv[1], sys.argv[2], False, True)
+    else :
+        print(sys.argv[0], "<binpath>", "<outdir>")

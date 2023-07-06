@@ -32,7 +32,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/guides/single-sourcing-package-version/
-    version="1.0.2",  # Required
+    version="1.0.3",  # Required
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#summary
@@ -158,7 +158,7 @@ setup(
     # maintainers, and where to support the project financially. The key is
     # what's used to render the link text on PyPI.
     project_urls={  # Optional
-        "Bug Reports": "https://github.com/openLuat/ectools2py/issues",
-        "Source": "https://github.com/openLuat/ectools2py/",
+        "Bug Reports": "https://github.com/openLuat/ectool2py/issues",
+        "Source": "https://github.com/openLuat/ectool2py/",
     },
 )

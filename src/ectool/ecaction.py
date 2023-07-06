@@ -66,13 +66,16 @@ def burn_sync(burncom, pType, counter) :
     logging.error("sync fail")
     return -1
 
-def burn_agboot(burncom, agent, baud, hashtype=None, pullupQspi=1):
+def burn_agboot(burncom, path_or_data, baud, hashtype=None, pullupQspi=1):
     logging.debug("Burn agent boot start")
     ret = package_base_info(burncom, get_imageid(enBurnImageType.BTYPE_HEAD))
     if ret != 0:
         return ret
-    with open(agent, "rb") as f :
-        fdata = f.read()
+    if type(path_or_data) == "bytes" :
+        fdata = path_or_data
+    else :
+        with open(path_or_data, "rb") as f :
+            fdata = f.read()
     logging.debug("agentboot file size " + str(len(fdata)))
     ret = package_image_head(burncom, fdata, enBurnImageType.BTYPE_AGBOOT, 0)
     if ret != 0:
@@ -91,8 +94,8 @@ def burn_agboot(burncom, agent, baud, hashtype=None, pullupQspi=1):
 
     return 0
 
-def burn_img(burncom, path, img_type, storType, addr):
-    logging.debug("Burn image start " + path + " " + str(img_type))
+def burn_img(burncom, path_or_data, img_type, storType, addr):
+    logging.debug("Burn image start " + str(img_type))
     # 1. 先执行一次 LPC Sync
     ret = burn_sync(burncom, enSynHandshakeType.SYNC_HANDSHAKE_LPC, 2)
     if ret != 0 :
@@ -116,8 +119,12 @@ def burn_img(burncom, path, img_type, storType, addr):
     if ret != 0 :
         logging.error("package_base_info fail")
         return -1
-    with open(path, "rb") as f :
-        fdata = f.read()
+    
+    if type(path_or_data) == "bytes" :
+        fdata = path_or_data
+    else :
+        with open(path_or_data, "rb") as f :
+            fdata = f.read()
     ret = package_image_head(burncom, fdata, img_type, addr, baud=0, bDlBoot=False, pullupQspi=0)
     if ret != 0 :
         logging.error("package_image_head fail")
