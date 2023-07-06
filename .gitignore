@@ -1,0 +1,9 @@
+
+# Other files and folders
+.settings/
+.vscode/
+
+*.pyc
+*.egg-info/
+build/
+dist/
