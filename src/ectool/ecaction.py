@@ -71,7 +71,7 @@ def burn_agboot(burncom, path_or_data, baud, hashtype=None, pullupQspi=1):
     ret = package_base_info(burncom, get_imageid(enBurnImageType.BTYPE_HEAD))
     if ret != 0:
         return ret
-    if type(path_or_data) == "bytes" :
+    if path_or_data.__class__.__name__ == "bytes" :
         fdata = path_or_data
     else :
         with open(path_or_data, "rb") as f :
@@ -94,7 +94,7 @@ def burn_agboot(burncom, path_or_data, baud, hashtype=None, pullupQspi=1):
 
     return 0
 
-def burn_img(burncom, path_or_data, img_type, storType, addr):
+def burn_img(burncom, path_or_data, img_type, storType, addr, tag="NAME"):
     logging.debug("Burn image start " + str(img_type))
     # 1. 先执行一次 LPC Sync
     ret = burn_sync(burncom, enSynHandshakeType.SYNC_HANDSHAKE_LPC, 2)
@@ -120,7 +120,7 @@ def burn_img(burncom, path_or_data, img_type, storType, addr):
         logging.error("package_base_info fail")
         return -1
     
-    if type(path_or_data) == "bytes" :
+    if path_or_data.__class__.__name__ == "bytes" :
         fdata = path_or_data
     else :
         with open(path_or_data, "rb") as f :
@@ -157,9 +157,11 @@ def burn_img(burncom, path_or_data, img_type, storType, addr):
 
         data_offset += data_len
         remain -= data_len
+        logging.info("downloading " + tag + " " + str(int(data_offset*100/len(fdata))) + "%")
     logging.debug("almost done burn_img")
     if ret == 0 :
         ret, tmpdata = package_lpc_get_burn_status(burncom)
+    logging.info("downloading " + tag + " 100%")
     return ret
 
 
@@ -270,7 +272,7 @@ def send_recv_lpcCmd(burncom, cmd, data, bDlBoot=True):
         logging.debug("rsp buff " + recv_buff.hex())
         rsp = stlpcRsp()
         rsp.unpack(recv_buff)
-        logging.info("lpc rsp " + str(rsp.state) + " " + str(rsp.len))
+        logging.debug("lpc rsp " + str(rsp.state) + " " + str(rsp.len))
         if rsp.len > 0 :
             recv_buff = com_read(burncom, rsp.len)
         crc32_buff = com_read(burncom, 4)

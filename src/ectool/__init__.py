@@ -2,5 +2,5 @@
 # -*- coding: UTF-8 -*-
 
 def main():
-    import ectool.ecburn
-    ectool.ecburn.main()
+    import ectool.eccli
+    ectool.eccli.main()
