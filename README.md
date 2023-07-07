@@ -16,7 +16,7 @@
 # 无镜像,或者系统默认镜像
 pip install -U ectool
 # 清华镜像
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple ectool
+pip install -U -i https://pypi.tuna.tsinghua.edu.cn/simple ectool
 ```
 
 刷机(当前仅USB刷机), 支持binpkg和soc文件, 但暂不支持LuatOS的脚本刷机
