@@ -16,8 +16,6 @@ import ectool.ecag as ecag
 ecargs = None
 logger = None
 
-# 参考文件 https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=483a9555e446577cefc31b5629e843cc814b83cb
-
 def ecburn_auto_select() :
     for item in serial.tools.list_ports.comports():
         if not item.pid or not item.location :

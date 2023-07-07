@@ -25,3 +25,20 @@ pip install -i https://pypi.tuna.tsinghua.edu.cn/simple ectool
 ectool burn -f example.binpkg
 # 启动后, 按住BOOT键, 复位模块, 或模块开机
 ```
+
+## TODO List
+
+* [ ] 完整的注释
+* [ ] 测试Linux下的兼容性
+* [ ] 测试Mac下的兼容性
+* [ ] 支持刷LuatOS的script.bin
+* [ ] 支持只刷AP
+
+## 参考链接
+
+* 流程参考 https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=483a9555e446577cefc31b5629e843cc814b83cb
+* beanio走的逆向版本 https://github.com/beanjs/beanio-ec618-downloader
+
+## 开源协议
+
+MIT
