@@ -22,6 +22,7 @@ def ecburn_auto_select() :
             continue
         if item.vid == 0x17D1 and item.pid == 0x0001 :
             return item.device
+            # return item.name
     return None
 
 def cli_burn() :
@@ -50,8 +51,9 @@ def cli_burn() :
     COM = ecargs.port
 
     # burncom = serial.Serial(COM, baudrate=921600, exclusive=None, timeout=1, xonxoff=False, rtscts=False, dsrdtr=False)
-    burncom = serial.Serial(COM, baudrate=921600)
+    burncom = serial.Serial(COM, baudrate=921600, timeout=1)
     burncom.dtr = 1
+    burncom.timeout = 1
 
     logging.info("Go   Sync")
     if 0 != burn_sync(burncom, enSynHandshakeType.SYNC_HANDSHAKE_DLBOOT, 2) :
@@ -99,6 +101,7 @@ def cli_unpack() :
     unpkg.binpkg_unpack(ecargs.file, ecargs.outdir)
 
 def main() :
+    # print("1.2.3.4.5")
     global ecargs
     global logger
     import argparse
