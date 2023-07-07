@@ -12,7 +12,7 @@ from ectool.ecconst import *
 COM_DEBUG = False
 COM_DEBUG_FILE = False
 
-is_win32 = platform.platform().upper() == "WINDOWS"
+is_win32 = platform.platform().upper().startswith("WIN")
 
 def com_write(burncom, data) :
     if COM_DEBUG :
