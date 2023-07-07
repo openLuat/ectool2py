@@ -21,7 +21,7 @@ def ecburn_auto_select() :
         if not item.pid or not item.location :
             continue
         if item.vid == 0x17D1 and item.pid == 0x0001 :
-            return item.name
+            return item.device
     return None
 
 def cli_burn() :
@@ -38,7 +38,7 @@ def cli_burn() :
         for i in range(1200) :
             COM = ecburn_auto_select()
             if COM :
-                logger.info("Found " + COM)
+                logger.info("Found " + str(COM))
                 ecargs.port = COM
                 break
             time.sleep(0.1)
@@ -49,7 +49,8 @@ def cli_burn() :
     logger.info("Select " + ecargs.port)
     COM = ecargs.port
 
-    burncom = serial.Serial(COM, baudrate=921600, timeout=1)
+    # burncom = serial.Serial(COM, baudrate=921600, exclusive=None, timeout=1, xonxoff=False, rtscts=False, dsrdtr=False)
+    burncom = serial.Serial(COM, baudrate=921600)
     burncom.dtr = 1
 
     logging.info("Go   Sync")
@@ -108,8 +109,8 @@ def main() :
     parser.add_argument("--img_type", "-t", choices=["BL", "CP", "AP", "FF"], help="image type for bin file")
     parser.add_argument("--sysreset", help="reset the chip after burn success", const=True, nargs="?")
     parser.add_argument("--debug", "-d", const=True, nargs="?", help="debug mode")
-    parser.add_argument("--port", "-p", default="auto", nargs=1, help="COM port or path, like COM49, default is auto search")
-    parser.add_argument("--outdir", "-o", default="tmp", nargs=1, help="output dir for actoion like unpack/diff")
+    parser.add_argument("--port", "-p", default="auto", help="COM port or path, like COM49, default is auto search")
+    parser.add_argument("--outdir", "-o", default="tmp", help="output dir for actoion like unpack/diff")
     parser.add_argument("--allow-upload", const=True, nargs="?", help="diff action require upload binpkg/soc to remote server, add this option means you agree it")
     ecargs = parser.parse_args()
     if len(sys.argv) == 1 or not ecargs.action :

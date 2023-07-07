@@ -10,6 +10,8 @@ def binpkg_unpack(path_or_data, outpath_dir=None, ram=False, debug=False) :
     # logging.info("output " + outpath_dir)
     if outpath_dir and not os.path.exists(outpath_dir) :
         os.makedirs(outpath_dir)
+    if ram :
+        outpath_dir = None
     jdata = {}
     if path_or_data.__class__.__name__ == "bytes" :
         fdata = path_or_data
@@ -43,6 +45,8 @@ def binpkg_unpack(path_or_data, outpath_dir=None, ram=False, debug=False) :
                         info_json = json.load(bio)
             if info_json and "script" in jdata :
                 jdata["script"]["burn_addr"] = int(info_json["download"]["script_addr"], 16)
+        else:
+            raise Exception("unkown file type")
     fsize = len(fdata)
 
     # 首先, 解析头部数据

@@ -4,7 +4,7 @@
 import os, struct, sys, json, shutil, logging, hashlib, time
 from serial import Serial
 import serial.tools.list_ports
-import zlib
+import zlib, platform
 
 from ectool.ecstruct import *
 from ectool.ecconst import *
@@ -12,13 +12,28 @@ from ectool.ecconst import *
 COM_DEBUG = False
 COM_DEBUG_FILE = False
 
+is_win32 = platform.platform().upper() == "WINDOWS"
+
 def com_write(burncom, data) :
     if COM_DEBUG :
         logging.debug(" == COM WRITE: " + data.hex().upper())
     if COM_DEBUG_FILE :
         with open("COM.txt", "a+") as f :
             f.write("-->({0}) {1}\n".format(len(data), data.hex().upper()))
-    burncom.write(data)
+    if is_win32 or len(data) <= 64 :
+        burncom.write(data)
+    else :
+        remain = len(data)
+        offset = 0
+        while remain > 0 :
+            if remain > 64 :
+                burncom.write(data[offset:offset+64])
+                offset += 64
+                remain -= 64
+                time.sleep(0.001)
+            else :
+                burncom.write(data[offset:])
+                break
 
 def com_read(burncom, slen) :
     if slen < 1 :
