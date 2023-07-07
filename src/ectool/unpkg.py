@@ -86,7 +86,7 @@ def binpkg_unpack(path_or_data, outpath_dir=None, ram=False, debug=False) :
     if outpath_dir :
         with open(os.path.join(outpath_dir, "image_info.json"), "w") as f :
             json.dump(jdata, f, indent=2)
-    if debug :
+    if outpath_dir and debug :
         print(json.dumps(jdata, indent=2))
     return jdata
 
