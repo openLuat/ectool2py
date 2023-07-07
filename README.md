@@ -1,12 +1,8 @@
- # 移芯工具箱
+# 移芯工具箱
 
-已支持:
-1. EC618的刷机
-2. binpkg格式解包
+支持移芯方案的刷机, 解包, windows/linux/macos 可用
 
-将要支持
-1. binpkg格式的打包
-2. EC718, EC616的刷机
+当前支持EC618系列, 例如Air780E/Air700E等模块
 
 ## 用法
 
@@ -26,13 +22,23 @@ ectool burn -f example.binpkg
 # 启动后, 按住BOOT键, 复位模块, 或模块开机
 ```
 
+更多参数执行 `ectool -h` 获取说明
+
 ## TODO List
 
-* [ ] 完整的注释
-* [ ] 测试Linux下的兼容性
+* [x] EC618使用USB刷机
+* [x] binpkg解包
+* [x] 测试Linux下的兼容性
+* [ ] EC618使用物理UART刷机
 * [ ] 测试Mac下的兼容性
 * [ ] 支持刷LuatOS的script.bin
 * [ ] 支持只刷AP
+* [ ] 完整的注释
+* [ ] SoC日志解析
+
+## Linux刷机过程展示
+
+[![asciicast](https://asciinema.org/a/595464.svg)](https://asciinema.org/a/595464)
 
 ## 参考链接
 
