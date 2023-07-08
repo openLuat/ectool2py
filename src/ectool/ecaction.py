@@ -279,10 +279,13 @@ def send_recv_lpcCmd(burncom, cmd, data, bDlBoot=True):
     # 首先, 计算crc32
     ckVal = zlib.crc32(cmd.pack() + data)
     # tmpdata = cmd.pack() + data + struct.pack("<I", ckVal)
+    cmd.len = len(data)
     if cmd.len > 0 :
         tmplen = cmd.len & 0xFFFFFF
         cmd.len = (crc8_maxim(struct.pack("<I", tmplen)[:3]) << 24) + tmplen
-    com_write(burncom, cmd.pack() + data + struct.pack("<I", ckVal))
+    tmpdata = cmd.pack() + data + struct.pack("<I", ckVal)
+    logging.debug("CMD lpc FULL " + tmpdata.hex().upper())
+    com_write(burncom, tmpdata)
     recv_buff = com_read(burncom, 6)
     if recv_buff :
         logging.debug("rsp buff " + recv_buff.hex())

@@ -25,13 +25,7 @@ def ecburn_auto_select() :
             # return item.name
     return None
 
-def cli_burn() :
-    if not ecargs.file :
-        logger.error("require -f/--file !!!")
-        sys.exit(3)
-    import ectool.unpkg as unpkg
-    jdata = unpkg.binpkg_unpack(ecargs.file, outpath_dir=None, ram=True, debug=ecargs.debug)
-    logger.info("Files " + json.dumps(list(jdata.keys())))
+def select_com() :
     if not ecargs.port or ecargs.port == "auto" :
         ecargs.port = None
         logger.info("Searching for USB Boot COM, max wait 120s")
@@ -45,13 +39,36 @@ def cli_burn() :
             time.sleep(0.1)
         if ecargs.port == None :
             logger.error("timeout for searching, exit")
-            sys.exit(2)
-            return
+            return None
+    return True
+
+def do_agentboot(burncom) :
+    
+    if ecargs.burn_agent == "y" :
+        logging.info("Go   AgentBoot download")
+        # TODO 支持uart刷机
+        ret = burn_agboot(burncom, bytes.fromhex(ecag.ec618_usb), 921600)
+        if ret != 0 :
+            logging.error("agentboot download fail")
+            return ret
+        logging.info("Done AgentBoot download")
+    return 0
+
+def cli_burn() :
+    if not ecargs.file :
+        logger.error("require -f/--file !!!")
+        sys.exit(3)
+    import ectool.unpkg as unpkg
+    jdata = unpkg.binpkg_unpack(ecargs.file, outpath_dir=None, ram=True, debug=ecargs.debug)
+    logger.info("Files " + json.dumps(list(jdata.keys())))
+    
+    if not select_com() :
+        sys.exit(2)
     logger.info("Select " + ecargs.port)
-    COM = ecargs.port
+    
 
     # burncom = serial.Serial(COM, baudrate=921600, exclusive=None, timeout=1, xonxoff=False, rtscts=False, dsrdtr=False)
-    burncom = serial.Serial(COM, baudrate=921600, timeout=0.8)
+    burncom = serial.Serial(ecargs.port, baudrate=921600, timeout=0.8)
     burncom.dtr = 1
     # burncom.timeout = 0.1
 
@@ -59,16 +76,9 @@ def cli_burn() :
     if 0 != burn_sync(burncom, enSynHandshakeType.SYNC_HANDSHAKE_DLBOOT, 2) :
         return -1
     logging.info("Done Sync")
-    
-    logging.info("Go   AgentBoot download")
-    # TODO 支持uart刷机
-    ret = burn_agboot(burncom, bytes.fromhex(ecag.ec618_usb), 921600)
-    if ret != 0 :
-        logging.error("agentboot download fail")
-        return ret
-    logging.info("Done AgentBoot download")
 
-    # time.sleep(1)
+    if do_agentboot(burncom) != 0 :
+        return -1
 
     while 1 :
         if "ap_bootloader" in jdata and ecargs.burn_bl == "y" :
@@ -93,7 +103,7 @@ def cli_burn() :
                 break
             logging.info("Done CP download")
 
-        if False and "script" in jdata and ecargs.burn_script == "y" :
+        if "script" in jdata and ecargs.burn_script == "y" :
             logging.info("Do   Script download")
             ret = burn_img(burncom, jdata["script"]["data"], enBurnImageType.BTYPE_FLEXFILE, STYPE_AP_FLASH, jdata["script"]["burn_addr"], tag="SCRIPT")
             if ret != 0 :
@@ -116,15 +126,52 @@ def cli_unpack() :
     import ectool.unpkg as unpkg
     unpkg.binpkg_unpack(ecargs.file, ecargs.outdir)
 
+def cli_erase() :
+    if ecargs.erase_addr == None or ecargs.erase_size == None :
+        logger.error("require --erase_addr and --erase_size  !!!")
+        sys.exit(3)
+    erase_addr = int(ecargs.erase_addr, 16)
+    erase_size = int(ecargs.erase_size, 16)
+    if erase_addr < 0 :
+        return 0
+    if erase_size < 0 :
+        return 0
+    if not select_com() :
+        sys.exit(2)
+    logger.info("Select " + ecargs.port)
+    
+
+    # burncom = serial.Serial(COM, baudrate=921600, exclusive=None, timeout=1, xonxoff=False, rtscts=False, dsrdtr=False)
+    burncom = serial.Serial(ecargs.port, baudrate=921600, timeout=0.8)
+    burncom.dtr = 1
+    # burncom.timeout = 0.1
+
+    logging.info("Go   Sync")
+    if 0 != burn_sync(burncom, enSynHandshakeType.SYNC_HANDSHAKE_DLBOOT, 2) :
+        return -1
+    logging.info("Done Sync")
+    
+    if do_agentboot(burncom) != 0 :
+        return -1
+
+    ret, _ = package_lpc_erase(burncom, erase_addr, erase_size)
+    logging.error("erase ret " + str(ret))
+    if ret != 0 :
+        logging.error("erase fail")
+    logging.info("sys reset " + str(sys_reset(burncom)))
+
 def main() :
     # print("1.2.3.4.5")
     global ecargs
     global logger
     import argparse
     parser = argparse.ArgumentParser(description='A tool for EC modules, like EC618')
-    parser.add_argument("action", choices=["burn", "unpack"], help="main action to perform")
+    parser.add_argument("action", choices=["burn", "unpack", "erase"], help="main action to perform")
     parser.add_argument("--file", "-f", help="file path")
     parser.add_argument("--burn_addr",  help="burn bin file to addr")
+    parser.add_argument("--erase_addr",  help="addr of erase actoion")
+    parser.add_argument("--erase_size",  help="size of erase action")
+    parser.add_argument("--burn_agent",  default="y",  choices=["y", "n"], help="burn AgentBoot, default y")
     parser.add_argument("--burn_bl",  default="y",  choices=["y", "n"], help="burn BootLoader, default y")
     parser.add_argument("--burn_ap",  default="y",  choices=["y", "n"], help="burn AP zone, default y")
     parser.add_argument("--burn_cp",  default="y",  choices=["y", "n"], help="burn CP zone, default y")
@@ -150,6 +197,8 @@ def main() :
         cli_burn()
     elif ecargs.action == "unpack" :
         cli_unpack()
+    elif ecargs.action == "erase":
+        cli_erase()
     else:
         logger.error("not support action " + ecargs.action + " yet")
         sys.exit(1)
