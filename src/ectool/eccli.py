@@ -154,10 +154,25 @@ def cli_erase() :
     if do_agentboot(burncom) != 0 :
         return -1
 
-    ret, _ = package_lpc_erase(burncom, erase_addr, erase_size)
-    logging.error("erase ret " + str(ret))
+    if erase_addr < 0x800000 :
+        erase_addr += 0x800000
+    ret = burn_sync(burncom, enSynHandshakeType.SYNC_HANDSHAKE_LPC, 2)
     if ret != 0 :
-        logging.error("erase fail")
+        logging.error("lpc sync fail")
+    else :
+        remain = erase_size
+        while remain > 0 :
+            if remain < 0x400 :
+                ret, _ = package_lpc_erase(burncom, erase_addr, remain)
+                remain = 0
+            else :
+                ret, _ = package_lpc_erase(burncom, erase_addr, 0x400)
+                erase_addr += 0x400
+                remain -= 0x400
+            logging.error("erase 0x{0:X} 0x{1:X} {2:X}".format(erase_addr, erase_size, ret))
+            if ret != 0 :
+                logging.error("erase fail")
+                break
     logging.info("sys reset " + str(sys_reset(burncom)))
 
 def main() :

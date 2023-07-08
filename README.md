@@ -30,6 +30,8 @@ ectool burn -f example.binpkg
 * [x] binpkg解包
 * [x] 测试Linux下的兼容性
 * [x] 支持只刷AP或CP
+* [x] 支持跳过AgentBoot
+* [x] 支持擦除指定区域的数据
 * [ ] EC618使用物理UART刷机
 * [ ] 测试Mac下的兼容性
 * [ ] 支持刷LuatOS的script.bin
