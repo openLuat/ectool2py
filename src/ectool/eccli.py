@@ -51,9 +51,9 @@ def cli_burn() :
     COM = ecargs.port
 
     # burncom = serial.Serial(COM, baudrate=921600, exclusive=None, timeout=1, xonxoff=False, rtscts=False, dsrdtr=False)
-    burncom = serial.Serial(COM, baudrate=921600, timeout=1)
+    burncom = serial.Serial(COM, baudrate=921600, timeout=0.8)
     burncom.dtr = 1
-    burncom.timeout = 1
+    # burncom.timeout = 0.1
 
     logging.info("Go   Sync")
     if 0 != burn_sync(burncom, enSynHandshakeType.SYNC_HANDSHAKE_DLBOOT, 2) :
@@ -70,28 +70,44 @@ def cli_burn() :
 
     # time.sleep(1)
 
-    logging.info("Go   BL download")
-    ret = burn_img(burncom, jdata["ap_bootloader"]["data"], enBurnImageType.BTYPE_BOOTLOADER, STYPE_AP_FLASH, 0, tag="BL")
-    if ret != 0 :
-        logging.error("burn_img BootLoader fail")
-        return ret
-    logging.info("Done BL download")
-    logging.info("Go   AP download")
-    ret = burn_img(burncom, jdata["ap"]["data"], enBurnImageType.BTYPE_AP, STYPE_AP_FLASH, 0x24000, tag="AP")
-    if ret != 0 :
-        logging.error("burn_img AP fail")
-        return ret
-    logging.info("Done AP download")
-    logging.info("Go   CP download")
-    ret = burn_img(burncom, jdata["cp-demo-flash"]["data"], enBurnImageType.BTYPE_CP, STYPE_CP_FLASH, 0, tag="CP")
-    if ret != 0 :
-        logging.error("burn_img CP fail")
-        return ret
-    logging.info("Done CP download")
+    while 1 :
+        if "ap_bootloader" in jdata and ecargs.burn_bl == "y" :
+            logging.info("Go   BL download")
+            ret = burn_img(burncom, jdata["ap_bootloader"]["data"], enBurnImageType.BTYPE_BOOTLOADER, STYPE_AP_FLASH, 0, tag="BL")
+            if ret != 0 :
+                logging.error("burn_img BootLoader fail")
+                break
+            logging.info("Done BL download")
+        if "ap" in jdata and ecargs.burn_ap == "y" :
+            logging.info("Go   AP download")
+            ret = burn_img(burncom, jdata["ap"]["data"], enBurnImageType.BTYPE_AP, STYPE_AP_FLASH, 0x24000, tag="AP")
+            if ret != 0 :
+                logging.error("burn_img AP fail")
+                break
+            logging.info("Done AP download")
+        if "cp-demo-flash" in jdata and ecargs.burn_cp == "y" :
+            logging.info("Go   CP download")
+            ret = burn_img(burncom, jdata["cp-demo-flash"]["data"], enBurnImageType.BTYPE_CP, STYPE_CP_FLASH, 0, tag="CP")
+            if ret != 0 :
+                logging.error("burn_img CP fail")
+                break
+            logging.info("Done CP download")
 
-    ret = sys_reset(burncom)
-    logging.info("sys reset " + str(ret))
-    logging.info("burn ok")
+        if False and "script" in jdata and ecargs.burn_script == "y" :
+            logging.info("Do   Script download")
+            ret = burn_img(burncom, jdata["script"]["data"], enBurnImageType.BTYPE_FLEXFILE, STYPE_AP_FLASH, jdata["script"]["burn_addr"], tag="SCRIPT")
+            if ret != 0 :
+                logging.error("burn_img SCRIPT fail")
+                break
+            logging.info("Done Script download")
+
+        break
+
+    logging.info("sys reset " + str(sys_reset(burncom)))
+    if ret == 0:
+        logging.info("burn ok")
+    else :
+        logging.info("burn fail " + str(ret))
         
 def cli_unpack() :
     if not ecargs.file :
@@ -109,10 +125,15 @@ def main() :
     parser.add_argument("action", choices=["burn", "unpack"], help="main action to perform")
     parser.add_argument("--file", "-f", help="file path")
     parser.add_argument("--burn_addr",  help="burn bin file to addr")
+    parser.add_argument("--burn_bl",  default="y",  choices=["y", "n"], help="burn BootLoader, default y")
+    parser.add_argument("--burn_ap",  default="y",  choices=["y", "n"], help="burn AP zone, default y")
+    parser.add_argument("--burn_cp",  default="y",  choices=["y", "n"], help="burn CP zone, default y")
+    parser.add_argument("--burn_script",  default="y",  choices=["y", "n"], help="burn Script Zone, default y")
     parser.add_argument("--img_type", "-t", choices=["BL", "CP", "AP", "FF"], help="image type for bin file")
     parser.add_argument("--sysreset", help="reset the chip after burn success", const=True, nargs="?")
     parser.add_argument("--debug", "-d", const=True, nargs="?", help="debug mode")
     parser.add_argument("--port", "-p", default="auto", help="COM port or path, like COM49, default is auto search")
+    parser.add_argument("--port_type", default="USB", choices=["USB", "UART"], help="USB or UART")
     parser.add_argument("--outdir", "-o", default="tmp", help="output dir for actoion like unpack/diff")
     parser.add_argument("--allow-upload", const=True, nargs="?", help="diff action require upload binpkg/soc to remote server, add this option means you agree it")
     ecargs = parser.parse_args()

@@ -15,7 +15,7 @@ pip3 install -U -i https://pypi.tuna.tsinghua.edu.cn/simple ectool
 pip3 install -U ectool
 ```
 
-刷机(当前仅USB刷机), 支持binpkg和soc文件, 但暂不支持LuatOS的脚本刷机
+刷机(当前仅USB刷机), 支持binpkg和soc文件
 
 ```bash
 ectool burn -f example.binpkg
@@ -29,12 +29,14 @@ ectool burn -f example.binpkg
 * [x] EC618使用USB刷机
 * [x] binpkg解包
 * [x] 测试Linux下的兼容性
+* [x] 支持只刷AP或CP
 * [ ] EC618使用物理UART刷机
 * [ ] 测试Mac下的兼容性
 * [ ] 支持刷LuatOS的script.bin
-* [ ] 支持只刷AP
 * [ ] 完整的注释
 * [ ] SoC日志解析
+* [ ] 支持从http加载固件文件进行下载
+* [ ] binpkg打包
 
 ## Linux刷机过程展示
 

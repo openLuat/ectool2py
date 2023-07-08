@@ -110,7 +110,8 @@ def burn_agboot(burncom, path_or_data, baud, hashtype=None, pullupQspi=1):
     return 0
 
 def burn_img(burncom, path_or_data, img_type, storType, addr, tag="NAME"):
-    logging.debug("Burn image start " + str(img_type))
+    # logging.debug("Burn image start " + str(img_type))
+    logging.info("burn image " + tag + " " + str(img_type) + " " + str(storType) + " " + ("%08X" % (addr, )))
     # 1. 先执行一次 LPC Sync
     ret = burn_sync(burncom, enSynHandshakeType.SYNC_HANDSHAKE_LPC, 2)
     if ret != 0 :

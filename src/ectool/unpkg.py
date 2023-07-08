@@ -34,7 +34,7 @@ def binpkg_unpack(path_or_data, outpath_dir=None, ram=False, debug=False) :
                             "offset" : 0,
                             "image_size" : len(tmpdata),
                             "hash" : hashlib.sha256(tmpdata).hexdigest(),
-                            "image_type" : "CP"
+                            "image_type" : "AP"
                         }
                         if outpath_dir :
                             with open(os.path.join(outpath_dir, fname), "wb") as f :
