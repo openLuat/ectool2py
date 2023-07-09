@@ -59,8 +59,8 @@ if __name__ == "__main__" :
     file_cnt = "\n"
     with open("./resources/ec618_agentboot_usb.bin", "rb") as f :
         file_cnt += "ec618_usb = \"\"\"" + f.read().hex() + "\"\"\"\n"
-    # with open("../../resources/ec618_agentboot_uart.bin", "rb") as f :
-    #     file_cnt += "ec618_uart = \"" + f.read().hex() + "\"\n"
+    with open("./resources/ec618_agentboot_uart.bin", "rb") as f :
+        file_cnt += "ec618_uart = \"" + f.read().hex() + "\"\n"
     with open("./src/ectool/ecag.py", "w") as f :
         f.write(file_cnt)
     

@@ -42,12 +42,27 @@ def select_com() :
             return None
     return True
 
+def port_open(baudrate=0) :
+    if ecargs.port_type == "usb" :
+        baudrate = 921600
+    else :
+        baudrate = 115200
+    logger.info("open port {0} {1:d} {2}".format(str(ecargs.port), baudrate, str(ecargs.port_type)))
+    burncom = serial.Serial(ecargs.port, baudrate=baudrate, timeout=0.8)
+    burncom.dtr = 1
+    return burncom
+
 def do_agentboot(burncom) :
     
     if ecargs.burn_agent == "y" :
         logging.info("Go   AgentBoot download")
         # TODO 支持uart刷机
-        ret = burn_agboot(burncom, bytes.fromhex(ecag.ec618_usb), 921600)
+        ag = None
+        if ecargs.port_type == "usb" :
+            ag = bytes.fromhex(ecag.ec618_usb)
+        else :
+            ag = bytes.fromhex(ecag.ec618_uart)
+        ret = burn_agboot(burncom, ag, 921600)
         if ret != 0 :
             logging.error("agentboot download fail")
             return ret
@@ -68,8 +83,7 @@ def cli_burn() :
     
 
     # burncom = serial.Serial(COM, baudrate=921600, exclusive=None, timeout=1, xonxoff=False, rtscts=False, dsrdtr=False)
-    burncom = serial.Serial(ecargs.port, baudrate=921600, timeout=0.8)
-    burncom.dtr = 1
+    burncom = port_open()
     # burncom.timeout = 0.1
 
     logging.info("Go   Sync")
@@ -105,7 +119,10 @@ def cli_burn() :
 
         if "script" in jdata and ecargs.burn_script == "y" :
             logging.info("Do   Script download")
-            ret = burn_img(burncom, jdata["script"]["data"], enBurnImageType.BTYPE_FLEXFILE, STYPE_AP_FLASH, jdata["script"]["burn_addr"], tag="SCRIPT")
+            burn_addr = jdata["script"]["burn_addr"]
+            if burn_addr < 0x800000 :
+                burn_addr += 0x800000
+            ret = burn_img(burncom, jdata["script"]["data"], enBurnImageType.BTYPE_FLEXFILE, STYPE_AP_FLASH, burn_addr, tag="SCRIPT")
             if ret != 0 :
                 logging.error("burn_img SCRIPT fail")
                 break
@@ -142,8 +159,7 @@ def cli_erase() :
     
 
     # burncom = serial.Serial(COM, baudrate=921600, exclusive=None, timeout=1, xonxoff=False, rtscts=False, dsrdtr=False)
-    burncom = serial.Serial(ecargs.port, baudrate=921600, timeout=0.8)
-    burncom.dtr = 1
+    burncom = port_open()
     # burncom.timeout = 0.1
 
     logging.info("Go   Sync")
@@ -153,6 +169,11 @@ def cli_erase() :
     
     if do_agentboot(burncom) != 0 :
         return -1
+
+    if ecargs.port_type == "uart" :
+        burncom.close()
+        time.sleep(0.5)
+        burncom = port_open(921600)
 
     if erase_addr < 0x800000 :
         erase_addr += 0x800000
@@ -195,7 +216,7 @@ def main() :
     parser.add_argument("--sysreset", help="reset the chip after burn success", const=True, nargs="?")
     parser.add_argument("--debug", "-d", const=True, nargs="?", help="debug mode")
     parser.add_argument("--port", "-p", default="auto", help="COM port or path, like COM49, default is auto search")
-    parser.add_argument("--port_type", default="USB", choices=["USB", "UART"], help="USB or UART")
+    parser.add_argument("--port_type", default="usb", choices=["usb", "uart"], help="USB or UART")
     parser.add_argument("--outdir", "-o", default="tmp", help="output dir for actoion like unpack/diff")
     parser.add_argument("--allow-upload", const=True, nargs="?", help="diff action require upload binpkg/soc to remote server, add this option means you agree it")
     ecargs = parser.parse_args()
