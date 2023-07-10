@@ -32,12 +32,13 @@ ectool burn -f example.binpkg
 * [x] 支持只刷AP或CP
 * [x] 支持跳过AgentBoot
 * [x] 支持擦除指定区域的数据
+* [x] SoC日志解析(简易)
+* [ ] 支持从http加载固件文件进行下载
 * [ ] EC618使用物理UART刷机
 * [ ] 测试Mac下的兼容性
 * [ ] 支持刷LuatOS的script.bin
 * [ ] 完整的注释
-* [ ] SoC日志解析
-* [ ] 支持从http加载固件文件进行下载
+* [ ] SoC日志解析(完整)
 * [ ] binpkg打包
 
 ## Linux刷机过程展示

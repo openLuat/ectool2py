@@ -16,22 +16,30 @@ import ectool.ecag as ecag
 ecargs = None
 logger = None
 
-def ecburn_auto_select() :
+def ecburn_auto_select(vid=0x17D1, pid=0x0001, location=None) :
     for item in serial.tools.list_ports.comports():
         if not item.pid or not item.location :
             continue
-        if item.vid == 0x17D1 and item.pid == 0x0001 :
+        if item.vid == vid and item.pid == pid :
+            if location :
+                if item.location.find(location) :
+                    return item.device
+                else :
+                    continue
             return item.device
             # return item.name
     return None
 
-def select_com() :
+def select_com(vid=0x17D1, pid=0x0001, location=None) :
     if not ecargs.port or ecargs.port == "auto" :
         ecargs.port = None
-        logger.info("Searching for USB Boot COM, max wait 120s")
-        logger.info("Pls Press BOOT button and poweron/reset the module/chip")
+        if vid == 0x17D1 and pid == 0x0001 :
+            logger.info("Searching for USB Boot COM, max wait 120s")
+            logger.info("Pls Press BOOT button and poweron/reset the module/chip")
+        else :
+            logger.info("Searching for SoC Log COM, max wait 120s")
         for i in range(1200) :
-            COM = ecburn_auto_select()
+            COM = ecburn_auto_select(vid, pid, location)
             if COM :
                 logger.info("Found " + str(COM))
                 ecargs.port = COM
@@ -196,13 +204,34 @@ def cli_erase() :
                 break
     logging.info("sys reset " + str(sys_reset(burncom)))
 
+def cli_logs():
+    
+    if not select_com(vid=0x19d1, pid=0x0001, location="x.2") :
+        sys.exit(2)
+    logger.info("Select " + ecargs.port)
+    logcom = port_open()
+    logcom.dtr = 1
+    logcom.timeout = 0.1
+    logcom.write(bytearray.fromhex("7E00007E"))
+    import ectool.eclogs
+    ctx = {}
+    while 1 :
+        data = logcom.read(512)
+        if data :
+            # logger.debug("LOGCOM " + data.hex().upper())
+            msgs = ectool.eclogs.log_parse(ctx, data)
+            # print("log ?? " + str(msgs))
+            if msgs and len(msgs) > 0 :
+                for msg in msgs :
+                    logger.info(msg)
+
 def main() :
     # print("1.2.3.4.5")
     global ecargs
     global logger
     import argparse
     parser = argparse.ArgumentParser(description='A tool for EC modules, like EC618')
-    parser.add_argument("action", choices=["burn", "unpack", "erase"], help="main action to perform")
+    parser.add_argument("action", choices=["burn", "unpack", "erase", "logs"], help="main action to perform")
     parser.add_argument("--file", "-f", help="file path")
     parser.add_argument("--burn_addr",  help="burn bin file to addr")
     parser.add_argument("--erase_addr",  help="addr of erase actoion")
@@ -235,6 +264,8 @@ def main() :
         cli_unpack()
     elif ecargs.action == "erase":
         cli_erase()
+    elif ecargs.action == "logs" :
+        cli_logs()
     else:
         logger.error("not support action " + ecargs.action + " yet")
         sys.exit(1)
