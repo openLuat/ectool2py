@@ -82,7 +82,19 @@ def cli_burn() :
         logger.error("require -f/--file !!!")
         sys.exit(3)
     import ectool.unpkg as unpkg
-    jdata = unpkg.binpkg_unpack(ecargs.file, outpath_dir=None, ram=True, debug=ecargs.debug)
+
+    if str(ecargs.file).startswith("http://") or str(ecargs.file).startswith("https://") :
+        logger.info("downloading ... " + ecargs.file)
+        import requests
+        resp = requests.get(ecargs.file)
+        if resp.status_code != 200 :
+            logger.error("http resp {}".format(resp.status_code))
+            sys.exit(4)
+        fdata = resp.content
+        logger.info("size {}".format(len(fdata)))
+        jdata = unpkg.binpkg_unpack(fdata, outpath_dir=None, ram=True, debug=ecargs.debug)
+    else :
+        jdata = unpkg.binpkg_unpack(ecargs.file, outpath_dir=None, ram=True, debug=ecargs.debug)
     logger.info("Files " + json.dumps(list(jdata.keys())))
     
     if not select_com() :
@@ -102,24 +114,41 @@ def cli_burn() :
     if do_agentboot(burncom) != 0 :
         return -1
 
+    # 根据image_type得出各分区的名称
+    BL_NAME = None
+    CP_NAME = None
+    AP_NAME = None
+    for name in jdata :
+        if not "data" in jdata[name] :
+            continue
+        if jdata[name]["image_type"] == "BL" :
+            BL_NAME = name
+        if jdata[name]["image_type"] == "CP" :
+            CP_NAME = name
+        if jdata[name]["image_type"] == "AP" :
+            if name == "script" :
+                continue
+            else :
+                AP_NAME = name
+
     while 1 :
-        if "ap_bootloader" in jdata and ecargs.burn_bl == "y" :
+        if BL_NAME and ecargs.burn_bl == "y" :
             logging.info("Go   BL download")
-            ret = burn_img(burncom, jdata["ap_bootloader"]["data"], enBurnImageType.BTYPE_BOOTLOADER, STYPE_AP_FLASH, 0, tag="BL")
+            ret = burn_img(burncom, jdata[BL_NAME]["data"], enBurnImageType.BTYPE_BOOTLOADER, STYPE_AP_FLASH, 0, tag="BL")
             if ret != 0 :
                 logging.error("burn_img BootLoader fail")
                 break
             logging.info("Done BL download")
-        if "ap" in jdata and ecargs.burn_ap == "y" :
+        if AP_NAME and ecargs.burn_ap == "y" :
             logging.info("Go   AP download")
-            ret = burn_img(burncom, jdata["ap"]["data"], enBurnImageType.BTYPE_AP, STYPE_AP_FLASH, 0x24000, tag="AP")
+            ret = burn_img(burncom, jdata[AP_NAME]["data"], enBurnImageType.BTYPE_AP, STYPE_AP_FLASH, 0x24000, tag="AP")
             if ret != 0 :
                 logging.error("burn_img AP fail")
                 break
             logging.info("Done AP download")
-        if "cp-demo-flash" in jdata and ecargs.burn_cp == "y" :
+        if CP_NAME and ecargs.burn_cp == "y" :
             logging.info("Go   CP download")
-            ret = burn_img(burncom, jdata["cp-demo-flash"]["data"], enBurnImageType.BTYPE_CP, STYPE_CP_FLASH, 0, tag="CP")
+            ret = burn_img(burncom, jdata[CP_NAME]["data"], enBurnImageType.BTYPE_CP, STYPE_CP_FLASH, 0, tag="CP")
             if ret != 0 :
                 logging.error("burn_img CP fail")
                 break

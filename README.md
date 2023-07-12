@@ -2,7 +2,9 @@
 
 支持移芯方案的刷机, 解包, windows/linux/macos 可用
 
-当前支持EC618系列, 例如Air780E/Air700E等模块
+当前支持EC618系列, 例如Air780E/Air700E/Air600E/Air780EG等模块
+
+本库可支持被引用, eccli本身就是调用实例.
 
 ## 用法
 
@@ -11,7 +13,7 @@
 ```bash
 # 清华镜像
 pip3 install -U -i https://pypi.tuna.tsinghua.edu.cn/simple ectool
-# 无镜像,或者系统默认镜像
+# 若安装失败, 可尝试以下命令, 从pypi直接进行安装
 pip3 install -U ectool
 ```
 
@@ -28,12 +30,12 @@ ectool burn -f example.binpkg
 
 * [x] EC618使用USB刷机
 * [x] binpkg解包
-* [x] 测试Linux下的兼容性
+* [x] 兼容Linux下刷机
 * [x] 支持只刷AP或CP
 * [x] 支持跳过AgentBoot
 * [x] 支持擦除指定区域的数据
 * [x] SoC日志解析(简易)
-* [ ] 支持从http加载固件文件进行下载
+* [x] 支持从http加载固件文件进行下载
 * [ ] EC618使用物理UART刷机
 * [ ] 测试Mac下的兼容性
 * [ ] 支持刷LuatOS的script.bin
