@@ -103,7 +103,11 @@ def log_parse(ctx, data) :
             if tmpdata :
                 tmpdata = log_unpack(tmpdata)
                 if tmpdata :
-                    tmpdata = log_split(tmpdata)
+                    try:
+                        tmpdata = log_split(tmpdata)
+                    except:
+                        pass
+                        #print("日志解析失败,跳过一条")
                     if tmpdata :
                         msgs.append(tmpdata)
                 else :
