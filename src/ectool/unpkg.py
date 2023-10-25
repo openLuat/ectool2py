@@ -51,9 +51,11 @@ def binpkg_unpack(path_or_data, outpath_dir=None, ram=False, debug=False) :
 
     # 首先, 解析头部数据
     foffset = 0
+    chip_name = "ec618"
     if fdata[0] == 0x31 and fdata[1] == 0x31 and fdata[2] == 0x31 :
         fhead = fdata[:4]
         foffset += 0x1D8
+        chip_name = fdata[0x190:0x196].decode('utf8')
     else:
         fhead = fdata[:52] 
         foffset += 0x34
@@ -90,6 +92,8 @@ def binpkg_unpack(path_or_data, outpath_dir=None, ram=False, debug=False) :
     if outpath_dir :
         with open(os.path.join(outpath_dir, "image_info.json"), "w") as f :
             json.dump(jdata, f, indent=2)
+        with open(os.path.join(outpath_dir, "image_meta.json"), "w") as f :
+            json.dump({"chip":chip_name}, f, indent=2)
     if outpath_dir and debug :
         print(json.dumps(jdata, indent=2))
     return jdata
