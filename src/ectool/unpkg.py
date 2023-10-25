@@ -51,8 +51,12 @@ def binpkg_unpack(path_or_data, outpath_dir=None, ram=False, debug=False) :
 
     # 首先, 解析头部数据
     foffset = 0
-    fhead = fdata[:52] 
-    foffset += 52
+    if fdata[0] == 0x31 and fdata[1] == 0x31 and fdata[2] == 0x31 :
+        fhead = fdata[:4]
+        foffset += 0x1D8
+    else:
+        fhead = fdata[:52] 
+        foffset += 0x34
     # 然后逐个文件解析出来
     while foffset < fsize :
         name,addr,flash_size,offset,img_size,hash,img_type,vt,vtsize,rsvd,pData = struct.unpack("64sIIII256s16sHHII", fdata[foffset:foffset+364])
