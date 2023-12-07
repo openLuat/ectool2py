@@ -31,17 +31,17 @@ ectool burn -f example.binpkg
 * [x] EC618使用USB刷机
 * [x] binpkg解包
 * [x] 兼容Linux下刷机
+* [x] 兼容Mac下刷机
 * [x] 支持只刷AP或CP
 * [x] 支持跳过AgentBoot
 * [x] 支持擦除指定区域的数据
 * [x] SoC日志解析(简易)
 * [x] 支持从http加载固件文件进行下载
 * [ ] EC618使用物理UART刷机
-* [ ] 测试Mac下的兼容性
 * [ ] 支持刷LuatOS的script.bin
 * [ ] 完整的注释
 * [ ] SoC日志解析(完整)
-* [ ] binpkg打包
+* [ ] ~~binpkg打包~~
 
 ## Linux刷机过程展示
 
@@ -49,8 +49,8 @@ ectool burn -f example.binpkg
 
 ## 参考链接
 
-* 流程参考 https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=483a9555e446577cefc31b5629e843cc814b83cb
-* beanio做的逆向版本 https://github.com/beanjs/beanio-ec618-downloader
+* 流程参考 [PSU的某种设备的文档](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=483a9555e446577cefc31b5629e843cc814b83cb)
+* beanio做的逆向版本 [beanio-ec618-downloader](https://github.com/beanjs/beanio-ec618-downloader)
 
 ## 开源协议
 
