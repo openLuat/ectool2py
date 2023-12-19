@@ -52,7 +52,7 @@ def binpkg_unpack(path_or_data, outpath_dir=None, ram=False, debug=False) :
     # 首先, 解析头部数据
     foffset = 0
     chip_name = "ec618"
-    if fdata[0] == 0x31 and fdata[1] == 0x31 and fdata[2] == 0x31 :
+    if fdata[0x38:0x3F] == b'pkgmode' :
         fhead = fdata[:4]
         foffset += 0x1D8
         chip_name = fdata[0x190:0x196].decode('utf8')
@@ -63,6 +63,7 @@ def binpkg_unpack(path_or_data, outpath_dir=None, ram=False, debug=False) :
     while foffset < fsize :
         name,addr,flash_size,offset,img_size,hash,img_type,vt,vtsize,rsvd,pData = struct.unpack("64sIIII256s16sHHII", fdata[foffset:foffset+364])
         name = name.rstrip(b'\0').decode('utf8')
+        print(name)
         hash = hash.rstrip(b'\0').decode('utf8').lower()
         img_type = img_type.rstrip(b'\0').decode('utf8')
         # if debug:
