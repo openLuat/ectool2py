@@ -22,7 +22,7 @@ def ecburn_auto_select(vid=0x17D1, pid=0x0001, location=None) :
             continue
         if item.vid == vid and item.pid == pid :
             if location :
-                if item.location.find(location) :
+                if item.location.find(location) >= 0 :
                     return item.device
                 else :
                     continue
